@@ -26,19 +26,14 @@
           </tr>
         </thead>
         <tbody>
+	  {% for client in clients %}
           <tr>
-            <td>0</td>
-            <td>Some shit computer</td>
-            <td>Some shit user</td>
+            <td>{{ client.id }}</td>
+            <td>{{ client.computer }}</td>
+            <td>{{ client.username }}</td>
           </tr>
+	  {% endfor %}
         </tbody>
-        <tfoot>
-          <tr>
-            <td><strong>ID</strong></td>
-            <td><strong>Computer</strong></td>
-            <td><strong>Username</strong></td>
-          </tr>
-        </tfoot>
       </table>
     </div>
     <div class="row">
