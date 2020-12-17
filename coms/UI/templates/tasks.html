@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Computers{% endblock %}
+
+{% block header %}
+<h3 class="text-dark mb-4">Tasks</h3>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+  <div class="card-header py-3">
+    <div class="d-flex justify-content-between">
+      <p class="text-primary m-0 font-weight-bold">Tasks Info</p>
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newTaskModal" {% if modules_count == 0 %}disabled{% endif %}>
+	<i class="fas fa-plus"></i>&nbsp;New task
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6 text-nowrap">
+      </div>
+    </div>
+    <div class="table-responsive table mt-2" id="dataTable" role="grid" aria-describedby="dataTable_info">
+      <table class="table my-0" id="dataTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Module</th>
+	    <th>Client</th>
+          </tr>
+        </thead>
+        <tbody>
+	  {% for task in tasks %}
+          <tr>
+            <td>{{ task.name }}</td>
+            <td><a>{{ task.module.name }}</a></td>
+	    <td>{{ task.client.computer }}/{{ task.client.username }}</td>
+          </tr>
+	  {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="row">
+      <div class="col-md align-self-end">
+        <nav class="d-lg-flex justify-content-lg-end dataTables_paginate paging_simple_numbers">
+          <ul class="pagination">
+            <li class="page-item disabled"><a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="newTaskModal" tabindex="-1" aria-labelledby="newTaskModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">New task</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+	<div class="form-group">
+	  <label for="taskName">Task name</label>
+	  <input class="form-control" id="taskName">
+	</div>
+	
+	<div class="form-group">
+	  <label for="taskModule">Module</label>
+	  <select class="form-control" id="taskModule">
+	    {% for module in modules %}
+	    <option value="{{ module.id }}">{{ module.name }}</option>
+	    {% endfor %}
+	  </select>
+	</div>
+
+	<div class="form-group">
+	  <label for="taskArguments">Task arguments</label>
+	  <input class="form-control" id="taskArguments">
+	</div>
+
+	<select id="taskClients" multiple="multiple">
+	  {% for client in clients %}
+	  <option value="{{ client.id }}">{{ client.computer }}/{{ client.username }}</option>
+	  {% endfor %}
+	</select>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="newTaskButton"><i class="fas fa-plus"></i>&nbsp;Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#taskClients').multiselect({
+            enableFiltering: true,
+            includeSelectAllOption: true,
+        });
+    });
+</script>
+
+
+
+<script>
+  $('#newTaskButton').click(function() {
+      $('#newTaskModal').modal('toggle');
+      var data = new FormData();
+      data.append('name', $('#taskName').val());
+      data.append('args', $('#taskArguments').val());
+      data.append('module', $('#taskModule').val());
+      data.append('clients', $('#taskClients').val());
+      
+      $.ajax({
+	  url: '/task/new',
+	  data: data,
+	  processData: false,
+	  contentType: false,
+	  type: 'POST',
+	  success: function() {}
+      });
+
+      $('#taskName').val('');
+  });
+</script>
+
+
+{% endblock %}

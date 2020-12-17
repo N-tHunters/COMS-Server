@@ -1,12 +1,21 @@
 from django.shortcuts import render
-from COMSAPI.models import Client
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from COMSAPI.models import Client, Module, Task
+
+
+def bar_status(request):
+    bar = False
+    if 'sidebar' in request.COOKIES.keys():
+        bar = request.COOKIES['sidebar']
+    return bar
 
 
 # Create your views here.
-def index(request):
-    bar_status = False
+def index(request):        
     computers_connected = Client.objects.count()
     computers_online = Client.objects.filter(is_connected=True).count()
+    
     if computers_connected != 0:
         connected_precentage = int(computers_online / computers_connected * 100)
     else:
@@ -14,18 +23,92 @@ def index(request):
     return render(request, 'index.html',
                   {
                       'computers_connected': computers_connected,
+                      'computers_online': computers_online,
+                      'computers_offline': computers_connected - computers_online,
                       'connected_precentage': connected_precentage,
-                      'bar_status': bar_status
+                      'page_title': 'index',
+                      'bar_status': bar_status(request)
                   })
 
 def computers(request):
     clients = Client.objects.all()
-    bar_status = False
-    if 'sidebar' in request.COOKIES.keys():
-        bar_status = request.COOKIES['sidebar']
-    print(bar_status)
     return render(request, 'computers.html',
                   {
                       'clients': clients,
-                      'bar_status': bar_status
+                      'page_title': 'computers',
+                      'bar_status': bar_status(request)
                   })
+
+def modules(request):
+    modules = Module.objects.all()
+    return render(request, 'modules.html',
+                    {
+                        'modules': modules,
+                        'page_title': 'modules',
+                        'bar_status': bar_status(request)
+                    })
+
+def tasks(request):
+    tasks = Task.objects.all()
+    modules = Module.objects.all()
+    clients = Client.objects.all()
+    return render(request, 'tasks.html',
+                      {
+                          'tasks': tasks,
+                          'clients': clients,
+                          'modules': modules,
+                          'modules_count': len(modules),
+                          'page_title': 'tasks',
+                          'bar_status': bar_status(request)
+                      })
+
+
+@csrf_exempt
+def new_module(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'wrong request'})
+    
+    if 'file' not in request.FILES.keys():
+        return JsonResponse({'error': 'no file'})
+    file_ = request.FILES['file']
+    
+    if 'name' not in request.POST.keys() or request.POST['name'] == '':
+        return JsonResponse({'error': 'no name'})
+    name = request.POST['name']
+
+    new_module = Module(name=name, file=file_)
+    new_module.save()
+    
+    return JsonResponse({'result': 'ok', 'id': new_module.id})
+
+
+@csrf_exempt
+def new_task(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'wrong request'})
+
+    if 'name' not in request.POST.keys():
+        return JsonResponse({'error': 'no name'})
+    name = request.POST['name']
+    
+    if 'args' not in request.POST.keys():
+        return JsonResponse({'error': 'no args'})
+    args = request.POST['args']
+    
+    if 'module' not in request.POST.keys():
+        return JsonResponse({'error': 'no module'})
+    module = Module.objects.get(id=int(request.POST['module']))
+    
+    if 'clients' not in request.POST.keys():
+        return JsonResponse({'error': 'no clients'})
+    clients = request.POST['clients'].split(',')
+
+    task_ids = []
+
+    for client_id in clients:
+        client = Client.objects.get(id=client_id)
+        new_task = Task(name=name, arguments=args, module=module, client=client)
+        new_task.save()
+        task_ids.append(new_task.id)
+    
+    return JsonResponse({'result': 'ok', 'id': task_ids})
