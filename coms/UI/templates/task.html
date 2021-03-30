@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Computers{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+
+{% block content %}
+
+<h2 style="font-size:4rem">{{ task.name }} (id: {{ task.id }})</h2>
+<table class="table" style="font-size: 3rem">
+  <tbody>
+    <tr>
+      <td>Client computer</td>
+      <td>{{ task.client.computer }}</td>
+    </tr>
+    <tr>
+      <td>Client username</td>
+      <td>{{ task.client.username }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 style="font-size:3rem">Reports:</h2>
+
+
+{% for report in reports %}
+<code class="bg-white p-3 w-100 rounded border-primary card"><pre>{{ report.content }}</pre></code>
+{% endfor %}
+
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
