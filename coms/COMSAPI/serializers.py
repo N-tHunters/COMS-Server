@@ -8,6 +8,8 @@ class ClientSerializer(serializers.Serializer):
 
 
 class TaskSerializer(serializers.Serializer):
-    id = serializers.CharField(max_length=256)
+    id = serializers.IntegerField()
     name = serializers.CharField(max_length=256)
     client = serializers.CharField(max_length=256, source='client.id')
+    module = serializers.CharField(max_length=256, source='module.name')
+    arguments = serializers.CharField(max_length=1024)
